@@ -21,12 +21,11 @@ public class ProductService {
     }
 
     public ProductDTO createProduct(ProductDTO dto) {
-        dto.setId(null);
+        dto.updateProduct(dto, null);
         ModelMapper mapper = new ModelMapper();
         Product product = mapper.map(dto, Product.class);
         product = productRepository.save(product);
-        dto.setId(product.getId());
-
+        dto = mapper.map(product, ProductDTO.class);
         return dto;
     }
 
@@ -47,7 +46,7 @@ public class ProductService {
     }
 
     public ProductDTO updateProduct(ProductDTO dto, Long id) {
-        dto.setId(id);
+        dto.updateProduct(dto, id);
         ModelMapper mapper = new ModelMapper();
         Product product = mapper.map(dto, Product.class);
         productRepository.save(product);
