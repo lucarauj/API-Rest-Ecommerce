@@ -3,10 +3,13 @@ package br.com.api.service;
 import br.com.api.exception.ResourceNotFoundException;
 import br.com.api.model.Product;
 import br.com.api.repository.ProductRepository;
+import br.com.api.shared.ProductDTO;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -17,39 +20,43 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
-    public Product createProduct(Product product) {
-        return productRepository.save(product);
+    public ProductDTO createProduct(ProductDTO dto) {
+        dto.setId(null);
+        ModelMapper mapper = new ModelMapper();
+        Product product = mapper.map(dto, Product.class);
+        product = productRepository.save(product);
+        dto.setId(product.getId());
+
+        return dto;
     }
 
-    public List<Product> listProducts() {
-        return productRepository.findAll();
+    public List<ProductDTO> listProducts() {
+        List<Product> products = productRepository.findAll();
+        return products.stream().map(product -> new ModelMapper()
+                .map(product, ProductDTO.class))
+                .collect(Collectors.toList());
     }
 
-    public Optional<Product> searchProductById(Long id) {
-        var searchProduct = productRepository.findById(id);
-        if (searchProduct.isPresent()) {
-            return productRepository.findById(id);
+    public Optional<ProductDTO> searchProductById(Long id) {
+        Optional<Product> product = productRepository.findById(id);
+        if (product.isPresent()) {
+            ProductDTO dto = new ModelMapper().map(product.get(), ProductDTO.class);
+            return Optional.of(dto);
         }
         throw new ResourceNotFoundException("Produto não encontrado");
     }
 
-    public Product updateProduct(Product product, Long id) {
-        var searchProduct = productRepository.findById(id);
-        if(searchProduct.isPresent()) {
-            var updateProduct = productRepository.getReferenceById(id);
-            updateProduct.setName(product.getName());
-            updateProduct.setPrice(product.getPrice());
-            updateProduct.setDescription(product.getDescription());
-            updateProduct.setAmount(product.getAmount());
-            return productRepository.save(updateProduct);
-        }
-
-        throw new ResourceNotFoundException("Produto não encontrado");
+    public ProductDTO updateProduct(ProductDTO dto, Long id) {
+        dto.setId(id);
+        ModelMapper mapper = new ModelMapper();
+        Product product = mapper.map(dto, Product.class);
+        productRepository.save(product);
+        return dto;
     }
 
     public void deleteProduct(Long id) {
-        var searchProduct = productRepository.findById(id);
-        if (searchProduct.isPresent()) {
+        Optional<Product> product = productRepository.findById(id);
+        if (product.isPresent()) {
             productRepository.deleteById(id);
         }
         throw new ResourceNotFoundException("Produto não encontrado");
