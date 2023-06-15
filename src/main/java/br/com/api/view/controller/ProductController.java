@@ -1,6 +1,5 @@
 package br.com.api.view.controller;
 
-import br.com.api.model.Product;
 import br.com.api.service.ProductService;
 import br.com.api.shared.ProductDTO;
 import br.com.api.view.model.ProductRequest;

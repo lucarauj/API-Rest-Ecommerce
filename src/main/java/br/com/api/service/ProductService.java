@@ -21,7 +21,7 @@ public class ProductService {
     }
 
     public ProductDTO createProduct(ProductDTO dto) {
-        dto.updateProduct(dto, null);
+        dto.setId(null);
         ModelMapper mapper = new ModelMapper();
         Product product = mapper.map(dto, Product.class);
         product = productRepository.save(product);
@@ -38,26 +38,30 @@ public class ProductService {
 
     public Optional<ProductDTO> searchProductById(Long id) {
         Optional<Product> product = productRepository.findById(id);
-        if (product.isPresent()) {
-            ProductDTO dto = new ModelMapper().map(product.get(), ProductDTO.class);
-            return Optional.of(dto);
+        if (product.isEmpty()) {
+            throw new ResourceNotFoundException("Produto não encontrado");
         }
-        throw new ResourceNotFoundException("Produto não encontrado");
+        ProductDTO dto = new ModelMapper().map(product.get(), ProductDTO.class);
+        return Optional.of(dto);
     }
 
     public ProductDTO updateProduct(ProductDTO dto, Long id) {
-        dto.updateProduct(dto, id);
+        Optional<Product> product = productRepository.findById(id);
+        if (product.isEmpty()) {
+            throw new ResourceNotFoundException("Produto não encontrado");
+        }
+        dto.setId(id);
         ModelMapper mapper = new ModelMapper();
-        Product product = mapper.map(dto, Product.class);
-        productRepository.save(product);
+        Product productUpdate = mapper.map(dto, Product.class);
+        productRepository.save(productUpdate);
         return dto;
     }
 
     public void deleteProduct(Long id) {
         Optional<Product> product = productRepository.findById(id);
-        if (product.isPresent()) {
-            productRepository.deleteById(id);
+        if (product.isEmpty()) {
+            throw new ResourceNotFoundException("Produto não encontrado");
         }
-        throw new ResourceNotFoundException("Produto não encontrado");
+        productRepository.deleteById(id);
     }
 }
